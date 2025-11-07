@@ -1,0 +1,38 @@
+name: Build EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download Tesseract OCR
+        run: |
+          Invoke-WebRequest -Uri https://github.com/UB-Mannheim/tesseract/releases/download/v5.3.1.20230401/tesseract-ocr-w64-setup-5.3.1.20230401.exe -OutFile tesseract.exe
+          Start-Process tesseract.exe -ArgumentList '/S' -Wait
+
+      - name: Build EXE with PyInstaller
+        run: |
+          pyinstaller --onefile --add-binary "C:\Program Files\Tesseract-OCR\tesseract.exe;." estrai_somministrati.py
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: estrai-somministrati-exe
+          path: dist/estrai_somministrati.exe
