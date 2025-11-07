@@ -32,7 +32,7 @@ jobs:
           pyinstaller --onefile --add-binary "C:\Program Files\Tesseract-OCR\tesseract.exe;." estrai_somministrati.py
 
       - name: Upload EXE artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: estrai-somministrati-exe
           path: dist/estrai_somministrati.exe
