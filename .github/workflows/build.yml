@@ -1,8 +1,6 @@
-name: Build EXE
+name: Build EXE OCR
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -11,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -20,19 +18,27 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install pyinstaller pytesseract pdf2image pillow pandas openpyxl tqdm
 
-      - name: Download Tesseract OCR
+      - name: Download Tesseract
         run: |
-          Invoke-WebRequest -Uri https://github.com/UB-Mannheim/tesseract/releases/download/v5.3.1.20230401/tesseract-ocr-w64-setup-5.3.1.20230401.exe -OutFile tesseract.exe
-          Start-Process tesseract.exe -ArgumentList '/S' -Wait
+          curl -L -o tesseract.exe https://github.com/UB-Mannheim/tesseract/releases/download/v5.3.1.20230401/tesseract-ocr-w64-setup.exe
+          mkdir tesseract
+          mv tesseract.exe tesseract/
 
-      - name: Build EXE with PyInstaller
+      - name: Download Poppler
         run: |
-          pyinstaller --onefile --add-binary "C:\Program Files\Tesseract-OCR\tesseract.exe;." estrai_somministrati.py
+          curl -L -o poppler.zip https://github.com/oschwartz10612/poppler-windows/releases/download/v23.11.0-0/poppler-23.11.0-0.zip
+          tar -xf poppler.zip
+          mkdir poppler
+          mv poppler-*/bin/* poppler/
 
-      - name: Upload EXE artifact
+      - name: Build EXE
+        run: |
+          pyinstaller --onefile estrai_somministrati.py
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: estrai-somministrati-exe
+          name: estrai_somministrati
           path: dist/estrai_somministrati.exe
